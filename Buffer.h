@@ -5,8 +5,13 @@
 #ifndef MONITORY_SOI_BUFFER_H
 #define MONITORY_SOI_BUFFER_H
 
+static const char *const FULL_CONDITION = "Buffer is full";
+
+static const char *const LESS_THAN_3_ELEMENTS = "Less than 3 elements";
+
+static const char *const LAST_ELEMENT_IS_OTHER = "Last element is other";
+
 #include <condition_variable>
-#include "Logger.h"
 
 class Buffer {
 private:
@@ -15,13 +20,14 @@ private:
 
     std::condition_variable cond;
     std::mutex mutex;
-    Logger logger{};
     int position = 0;
     char buffer[SIZE]{};
 
     bool isFull() const;
 
-    bool canConsume(char c) const;
+    bool isMoreThan3Elements() const;
+
+    bool isLastElement(char c) const;
 
     void produce(char);
 
@@ -38,6 +44,8 @@ public:
     char consumeA();
 
     char consumeB();
+
+    void printBuffer();
 };
 
 #endif //MONITORY_SOI_BUFFER_H

@@ -2,36 +2,42 @@
 // Created by abrzozowski on 12.12.17.
 //
 
+#include <sstream>
+#include <iostream>
 #include "Buffer.h"
 
 void Buffer::produceA() {
-    logger.info("Producer A tries to produce");
     produce('A');
-    logger.info("Producer A successfully produced");
 }
 
 void Buffer::produceB() {
-    logger.info("Producer B tries to produce");
     produce('B');
-    logger.info("Producer B successfully produced");
 }
 
 char Buffer::consumeA() {
-    logger.info("Consumer A tries to consume");
     const char c = consume('A');
-    logger.info("Consumer A successfully consumed");
     return c;
 }
 
 char Buffer::consumeB() {
-    logger.info("Consumer B tries to consume");
     const char c = consume('B');
-    logger.info("Consumer B successfully consumed");
     return c;
 }
 
-bool Buffer::canConsume(char c) const {
-    return position > MIN_CONSUME_SIZE - 1 && buffer[position - 1] == c;
+bool Buffer::isLastElement(char c) const {
+    return buffer[position - 1] == c;
+}
+
+bool Buffer::isMoreThan3Elements() const {
+    return position > MIN_CONSUME_SIZE;
+}
+
+void Buffer::printBuffer() {
+    printf("Buffer: [");
+    for (int i = 0; i < position - 1; ++i) {
+        printf("%c, ", buffer[i]);
+    }
+    printf("%c]\n", buffer[position - 1]);
 }
 
 bool Buffer::isFull() const {
@@ -40,10 +46,20 @@ bool Buffer::isFull() const {
 
 void Buffer::produce(char c) {
     std::unique_lock<std::mutex> lock(mutex);
-    cond.wait(lock, [this]() { return !isFull(); });
+
+    if (isFull()) {
+        printf("Producer %c waits (%s)\n", c, FULL_CONDITION);
+
+        cond.wait(lock, [this]() { return !isFull(); });
+
+        printf("Producer %c produces element after waiting (%s)\n", c, FULL_CONDITION);
+    } else {
+        printf("Producer %c produces element\n", c);
+    }
 
     buffer[position] = c;
     ++position;
+    printBuffer();
 
     lock.unlock();
     cond.notify_all();
@@ -52,9 +68,21 @@ void Buffer::produce(char c) {
 char Buffer::consume(char c) {
     std::unique_lock<std::mutex> lock(mutex);
 
-    cond.wait(lock, [this, c]() -> bool { return canConsume(c); });
+    const bool lessThan3Elements = !isMoreThan3Elements();
+    const bool lastElementOther = !isLastElement(c);
+    if (lessThan3Elements || lastElementOther) {
+        const char *const condition = lessThan3Elements ? LESS_THAN_3_ELEMENTS : LAST_ELEMENT_IS_OTHER;
+        printf("Consumer %c waits (%s)\n", c, condition);
+
+        cond.wait(lock, [this, c]() -> bool { return isMoreThan3Elements() && isLastElement(c); });
+
+        printf("Consumer %c consumes after waiting (%s)\n", c, condition);
+    } else {
+        printf("Consumer %c consumes\n", c);
+    }
 
     --position;
+    printBuffer();
 
     lock.unlock();
     cond.notify_all();

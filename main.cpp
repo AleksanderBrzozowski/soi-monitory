@@ -5,10 +5,10 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-static const int PRODUCER_A_SLEEP_IN_SECONDS = 1;
-static const int PRODUCER_B_SLEEP_IN_SECONDS = 5;
-static const int CONSUMER_A_SLEEP_IN_SECONDS = 5;
-static const int CONSUMER_B_SLEEP_IN_SECONDS = 10;
+static const int PRODUCER_A_SLEEP_IN_SECONDS = 3;
+static const int PRODUCER_B_SLEEP_IN_SECONDS = 2;
+static const int CONSUMER_A_SLEEP_IN_SECONDS = 1;
+static const int CONSUMER_B_SLEEP_IN_SECONDS = 1;
 
 void consumeA(Buffer &buffer, int sleepDurationInSeconds);
 
