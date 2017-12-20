@@ -9,7 +9,7 @@
 void Buffer::produceA() {
     produce('A');
 }
-
+    
 void Buffer::produceB() {
     produce('B');
 }
@@ -24,8 +24,8 @@ char Buffer::consumeB() {
     return c;
 }
 
-bool Buffer::isLastElement(char c) const {
-    return buffer[position - 1] == c;
+bool Buffer::isFirstElement(char c) const {
+    return buffer[0] == c;
 }
 
 bool Buffer::isMoreThan3Elements() const {
@@ -69,18 +69,21 @@ char Buffer::consume(char c) {
     std::unique_lock<std::mutex> lock(mutex);
 
     const bool lessThan3Elements = !isMoreThan3Elements();
-    const bool lastElementOther = !isLastElement(c);
-    if (lessThan3Elements || lastElementOther) {
-        const char *const condition = lessThan3Elements ? LESS_THAN_3_ELEMENTS : LAST_ELEMENT_IS_OTHER;
+    const bool isFirstElementOther = !isFirstElement(c);
+    if (lessThan3Elements || isFirstElementOther) {
+        const char *const condition = lessThan3Elements ? LESS_THAN_3_ELEMENTS : FIRST_ELEMENT_OTHER;
         printf("Consumer %c waits (%s)\n", c, condition);
 
-        cond.wait(lock, [this, c]() -> bool { return isMoreThan3Elements() && isLastElement(c); });
+        cond.wait(lock, [this, c]() -> bool { return isMoreThan3Elements() && isFirstElement(c); });
 
         printf("Consumer %c consumes after waiting (%s)\n", c, condition);
     } else {
         printf("Consumer %c consumes\n", c);
     }
 
+    for (int i = 0; i < position - 1; ++i) {
+        buffer[i] = buffer[i + 1];
+    }
     --position;
     printBuffer();
 

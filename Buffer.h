@@ -9,7 +9,7 @@ static const char *const FULL_CONDITION = "Buffer is full";
 
 static const char *const LESS_THAN_3_ELEMENTS = "Less than 3 elements";
 
-static const char *const LAST_ELEMENT_IS_OTHER = "Last element is other";
+static const char *const FIRST_ELEMENT_OTHER = "First element is other";
 
 #include <condition_variable>
 
@@ -27,7 +27,7 @@ private:
 
     bool isMoreThan3Elements() const;
 
-    bool isLastElement(char c) const;
+    bool isFirstElement(char c) const;
 
     void produce(char);
 
